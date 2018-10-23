@@ -55,6 +55,11 @@ spec:
         - name: {{ template "cp-kafka-connect.name" . }}-server
           image: "{{ .Values.image }}:{{ .Values.imageTag }}"
           imagePullPolicy: "{{ .Values.imagePullPolicy }}"
+          {{- if .Values.pluginVolume.enabled }}
+          volumeMounts:
+          - mountPath: {{ .Values.pluginVolume.path }}
+            name: connect-plugins
+          {{- end }}
           ports:
             - name: kafka-connect
               containerPort: {{ .Values.servicePort}}
@@ -69,7 +74,9 @@ spec:
             - name: CONNECT_REST_ADVERTISED_HOST_NAME
               valueFrom:
                 fieldRef:
-                  fieldPath: status.podIP
+                  fieldPath: metadata.name
+            - name: CONNECT_PLUGIN_PATH
+              value: {{ template "cp-kafka-connect.pluginPath" }}
             - name: CONNECT_BOOTSTRAP_SERVERS
               value: {{ template "cp-kafka-connect.kafka.bootstrapServers" . }}
             - name: CONNECT_GROUP_ID
@@ -115,4 +122,9 @@ spec:
       {{- if .Values.tolerations }}
       tolerations:
 {{ toYaml .Values.tolerations | indent 8 }}
+      {{- end }}
+      {{- if .Values.pluginVolume.enabled }}
+      - name: connect-plugins
+        persistentVolumeClaim:
+          claimName: {{ template "cp-kafka-connect.fullname" . }}-plugins
       {{- end }}

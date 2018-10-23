@@ -22,6 +22,7 @@ servicePort: 8083
 
 ## Kafka Connect properties
 ## ref: https://docs.confluent.io/current/connect/userguide.html#configuring-workers
+<<<<<<< HEAD
 configurationOverrides:
   "plugin.path": "/usr/share/java,/usr/share/confluent-hub-components"
   "key.converter": "io.confluent.connect.avro.AvroConverter"
@@ -39,6 +40,19 @@ heapOptions: "-Xms512M -Xmx512M"
 
 ## Additional env variables
 customEnv: {}
+=======
+connectKeyConverter: "io.confluent.connect.avro.AvroConverter"
+connectValueConverter: "io.confluent.connect.avro.AvroConverter"
+connectInternalKeyConverter: "org.apache.kafka.connect.json.JsonConverter"
+connectInternalValueConverter: "org.apache.kafka.connect.json.JsonConverter"
+pluginPath: "/usr/share/java"
+pluginVolume: {}
+#  Enable this to create a persistent volume for storing additional plugins.
+#  enabled: true
+#  storageClass: basic
+#  size: 1Gb
+#  path: "/usr/share/java/custom"
+>>>>>>> Added plugin volume support to persist custom plugins
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
