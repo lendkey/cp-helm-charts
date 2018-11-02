@@ -46,6 +46,11 @@ cp-kafka:
   imagePullSecrets:
   #  - name: "regcred"
   heapOptions: "-Xms512M -Xmx512M"
+  configurationOverrides:
+    "log.dirs": /opt/kafka/data/logs
+    "offsets.topic.replication.factor": 3
+    "advertised.listeners": |-
+     EXTERNAL://${HOSTNAME}.confluent-cp-kafka-headless.team-appops.dev.svc.cluster.local:9093
   persistence:
     enabled: true
     # storageClass: ""
@@ -231,9 +236,9 @@ cp-kafka-connect:
     bootstrapSSL: true
   pluginVolume:
     enabled: true
-    storageClass: hyperspeed
+    storageClass: basic
     accessModes: 
-    - ReadWriteOnce
+    - ReadWriteMany
     size: 1Gi
     path: /usr/share/java/custom
   downloadPlugins:
@@ -378,3 +383,14 @@ global:
       keystorePassword: test1234
       keyPassword: test1234
       truststorePassword: test1234
+      client:
+        truststoreFile: kafka.client.truststore.jks
+        truststorePassword: test1234
+        keystoreFile: kafka.client.keystore.jks
+        keystorePassword: ""
+      broker:
+        truststoreFile: kafka.server.truststore.jks
+        keystoreFile: kafka.server.keystore.jks
+        keystorePassword: test1234
+        keyPassword: test1234
+        truststorePassword: test1234
