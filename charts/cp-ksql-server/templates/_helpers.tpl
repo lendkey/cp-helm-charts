@@ -47,7 +47,7 @@ else use user-provided URL
 {{- define "cp-ksql-server.kafka.bootstrapServers" -}}
 {{- if .Values.kafka.bootstrapServers -}}
 {{- .Values.kafka.bootstrapServers -}}
-{{- else if .Values.global.kafka.ssl.enabled -}}
+{{- else if ( or .Values.global.kafka.ssl.enabled .Values.ssl.enabled ) -}}
 {{- $name := default "cp-kafka" .Values.kafka.nameOverride -}}
 {{- printf "SSL://%s-%s-0.%s:9092" .Release.Name $name (include "cp-ksql-server.cp-kafka-headless.fullname" .) -}}
 {{- else -}}
@@ -80,5 +80,16 @@ We truncate at 63 chars because some Kubernetes name fields are limited to this 
 {{- printf "%s" (index .Values "cp-schema-registry" "url") -}}
 {{- else -}}
 {{- printf "http://%s:8081" (include "cp-ksql-server.cp-schema-registry.fullname" .) -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Create a secret name depending on if we're using shared SSL settings from a parent chart
+*/}}
+{{- define "cp-kafka.ssl.secretName" -}}
+{{- if .Values.global.kafka.ssl.enabled -}}
+{{- printf "%s-%s" .Release.Name "-kafka-ssl-secret" -}}
+{{- else -}}
+{{- printf "%s-%s" (include "cp-ksql-server.fullname" .) "-ssl-secret" -}}
 {{- end -}}
 {{- end -}}
