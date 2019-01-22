@@ -36,6 +36,8 @@ servicePort: 8081
 ## Schema registry JVM Heap Option
 heapOptions: "-Xms512M -Xmx512M"
 
+https: {}
+
 ssl:
   client: {}
 
