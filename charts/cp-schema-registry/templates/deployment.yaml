@@ -101,7 +101,7 @@ spec:
             value: "true"
           - name: SCHEMA_REGISTRY_HEAP_OPTS
             value: "{{ .Values.heapOptions }}"
-          {{- if .Values.https }}
+          {{- if .Values.https.enabled }}
           - name: SCHEMA_REGISTRY_INTER_INSTANCE_PROTOCOL
             value: https
           {{- end }}
