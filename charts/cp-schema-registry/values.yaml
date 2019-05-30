@@ -36,15 +36,20 @@ servicePort: 8081
 ## Schema registry JVM Heap Option
 heapOptions: "-Xms512M -Xmx512M"
 
-# TLS enabled Kafka
-ssl:
-  client: {}
-
 ## You can list load balanced service endpoint, or list of all brokers (which is hard in K8s).  e.g.:
 ## bootstrapServers: "PLAINTEXT://dozing-prawn-kafka-headless:9092"
 ## Charts uses Kafka Coordinator Master Election: https://docs.confluent.io/current/schema-registry/docs/design.html#kafka-coordinator-master-election
 kafka:
   bootstrapServers: ""
+
+# SSL enabled Kafka
+# If setting to true, you need to set the other attributes are set as well
+ssl:
+  enabled: false
+  # secretName: cp-schema-registry-secret   <- If you intend to pre-create the secret outside of helm chart, use this.  Otherwise, leave commented out
+  client: {}
+  #   truststoreFile: "truststore_under_certs_folder.jks"
+  #   keystoreFile: "keystore_under_certs_folder.jks"
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -88,3 +93,12 @@ prometheus:
     port: 5556
 
     resources: {}
+
+
+## ------------------------------------------------------
+## Global variables
+## ------------------------------------------------------
+global:
+  kafka:
+    ssl:
+      enabled: false
