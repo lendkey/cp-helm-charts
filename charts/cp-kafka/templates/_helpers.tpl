@@ -31,7 +31,7 @@ Create chart name and version as used by the chart label.
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{/*
+{{/* 
 Support both global and chart local values for each keystore/password setting
 */}}
 {{- define "cp-kafka.ssl.broker.keystore" -}}
@@ -126,11 +126,4 @@ Create a variable containing all the datadirs created.
 {{- if $k}}{{- printf ","}}{{end}}
 {{- printf "/opt/kafka/data-%d/logs" $k -}}
 {{- end -}}
-{{- end -}}
-
-{{/*
-Return auth type for Client Certificate Authentication
-*/}}
-{{- define "cp-kafka.ssl.client.auth.type" -}}
-{{- default .Values.ssl.client.auth .Values.global.kafka.ssl.client.auth "None" -}}
 {{- end -}}

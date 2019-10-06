@@ -33,7 +33,6 @@ spec:
         {{- if .Values.prometheus.jmx.enabled }}
         - name: prometheus-jmx-exporter
           image: "{{ .Values.prometheus.jmx.image }}:{{ .Values.prometheus.jmx.imageTag }}"
-          imagePullPolicy: "{{ .Values.prometheus.jmx.imagePullPolicy }}"
           command:
           - java
           - -XX:+UnlockExperimentalVMOptions
@@ -69,7 +68,7 @@ spec:
             - name: CONNECT_REST_ADVERTISED_HOST_NAME
               valueFrom:
                 fieldRef:
-                  fieldPath: metadata.name
+                  fieldPath: status.podIP
             - name: CONNECT_PLUGIN_PATH
               value: {{ .Values.pluginPath }}
             - name: CONNECT_BOOTSTRAP_SERVERS
@@ -86,19 +85,14 @@ spec:
               value: {{ template "cp-kafka-connect.cp-schema-registry.service-name" .}}
             - name: CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL
               value: {{ template "cp-kafka-connect.cp-schema-registry.service-name" .}}
-            - name: KAFKA_HEAP_OPTS
-              value: "{{ .Values.heapOptions }}"
-            {{- range $key, $value := .Values.configurationOverrides }}
-            - name: {{ printf "CONNECT_%s" $key | replace "." "_" | upper | quote }}
-              value: {{ $value | quote }}
-            {{- end }}
-            {{- range $key, $value := .Values.customEnv }}
-            - name: {{ $key | quote }}
-              value: {{ $value | quote }}
             - name: CONNECT_KEY_CONVERTER
               value: {{ .Values.connectKeyConverter }}
             - name: CONNECT_VALUE_CONVERTER
               value: {{ .Values.connectValueConverter }}
+            - name: CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE
+              value: "{{ .Values.connectKeyConverterSchemaEnable }}"
+            - name: CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE
+              value: "{{ .Values.connectValueConverterSchemaEnable }}"
             - name: CONNECT_INTERNAL_KEY_CONVERTER
               value: {{ .Values.connectInternalKeyConverter }}
             - name: CONNECT_INTERNAL_VALUE_CONVERTER
@@ -143,7 +137,7 @@ spec:
                   name: {{ template "cp-kafka.ssl.secretName" . }}
                   key: client.keystore.password
             - name: KAFKA_DISTRIBUTED_SSL_KEY_PASSWORD
-              valueFrom: 
+              valueFrom:
                 secretKeyRef:
                   name: {{ template "cp-kafka.ssl.secretName" . }}
                   key: client.key.password
@@ -180,9 +174,4 @@ spec:
       {{- if .Values.tolerations }}
       tolerations:
 {{ toYaml .Values.tolerations | indent 8 }}
-      {{- end }}
-      {{- if .Values.pluginVolume.enabled }}
-      - name: connect-plugins
-        persistentVolumeClaim:
-          claimName: {{ template "cp-kafka-connect.fullname" . }}-plugins
       {{- end }}
