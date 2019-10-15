@@ -31,6 +31,7 @@ spec:
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         resources:
 {{ toYaml .Values.resources | indent 12 }}
+        command: ["/bin/bash", "-c", "tail -f /dev/null"]
         env:
         - name: KAFKA_UTILS_BOOTSTRAP_SERVERS
           value: {{ template "lk-kafka-utils.kafka.bootstrapServers" . }}
@@ -44,6 +45,60 @@ spec:
           value: {{ template "lk-kafka-utils.cp-ksql-server.service-name" . }}
         - name: KAFKA_UTILS_SCHEMA_REGISTRY_URL
           value: {{ template "lk-kafka-utils.cp-schema-registry.service-name" . }}
+        - name: ELASYS_SOURCE_TPL
+          value: elasys-source-connector.tpl.json
+        - name: ELASYS_SINK_TPL
+          value: sink-connector.tpl.json
+        - name: KSQL_INIT_TPL
+          value: ksql-elasys-stream.tpl.json
+        - name: KSQL_PPAPI_TPL
+          value: ksql-ppapi-stream.tpl.json
+        - name: NAME
+          value: elasys-source-connector-01
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: ELASYS_DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: global-config
+              key: ELASYS_DB_NAME
+        - name: PPAPI_DB_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: global-config
+              key: PPAPI_DB_NAME
+        - name: ELASYS_DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: global-config
+              key: ELASYS_DB_HOST
+        - name: PPAPI_DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: global-config
+              key: PPAPI_DB_HOST
+        - name: ELASYS_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: elasys-db
+              key: db-password
+        - name: PPAPI_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: ppapi-db
+              key: db-password
+        - name: ELASYS_DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: elasys-db
+              key: db-user
+        - name: PPAPI_DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: ppapi-db
+              key: db-user
           # SSL
         {{- if or .Values.ssl.enabled .Values.global.kafka.ssl.enabled }}
         - name: KAFKA_UTILS_SECURITY_PROTOCOL
@@ -97,26 +152,26 @@ spec:
           value: "5"
         - name: SECOND_INTERVAL_CHECK
           value: "300"
-        - name: ELASYS_PASSWORD
+        - name: ELASYS_DB_PASSWORD
           valueFrom:
             secretKeyRef:
               name: elasys-db
               key: db-password
-        - name: ELASYS_USER
+        - name: ELASYS_DB_USER
           valueFrom:
             secretKeyRef:
               name: elasys-db
               key: db-user
-        - name: ELASYS_HOST
+        - name: ELASYS_DB_HOST
           valueFrom:
             configMapKeyRef:
               name: global-config
-              key: elasys-db-url
-        - name: ELASYS_DB
+              key: ELASYS_DB_HOST
+        - name: ELASYS_DB_NAME
           valueFrom:
             configMapKeyRef:
               name: global-config
-              key: elasys-db-name
+              key: ELASYS_DB_NAME
         {{- if or .Values.ssl.enabled .Values.global.kafka.ssl.enabled }}
         volumeMounts:
         - name: ssl
