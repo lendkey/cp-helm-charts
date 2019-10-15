@@ -1,0 +1,146 @@
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ include "lk-kafka-utils.fullname" . }}
+  labels:
+    app: {{ include "lk-kafka-utils.name" . }}
+    chart: {{ include "lk-kafka-utils.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ include "lk-kafka-utils.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "lk-kafka-utils.name" . }}
+        release: {{ .Release.Name }}
+      {{- if .Values.podAnnotations }}
+      annotations:
+      {{- range $key, $value := .Values.podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+      {{- end }}
+      {{- end }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image }}:{{ .Values.imageTag }}"
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          env:
+          - name: KAFKA_UTILS_BOOTSTRAP_SERVERS
+            value: {{ template "lk-kafka-utils.kafka.bootstrapServers" . }}
+          - name: KAFKA_UTILS_ZOOKEEPER_CONNECT
+            value: {{ template "lk-kafka-utils.cp-zookeeper.service-name" . }}
+          - name: KAFKA_UTILS_CONNECT_CLUSTER
+            value: {{ template "lk-kafka-utils.cp-kafka-connect.service-name" . }}
+          - name: KAFKA_UTILS_KSQL_URL
+            value: {{ template "lk-kafka-utils.cp-ksql-server.service-name" . }}
+          - name: KAFKA_UTILS_KSQL_ADVERTISED_URL
+            value: {{ template "lk-kafka-utils.cp-ksql-server.service-name" . }}
+          - name: KAFKA_UTILS_SCHEMA_REGISTRY_URL
+            value: {{ template "lk-kafka-utils.cp-schema-registry.service-name" . }}
+            # SSL
+          {{- if or .Values.ssl.enabled .Values.global.kafka.ssl.enabled }}
+          - name: KAFKA_UTILS_SECURITY_PROTOCOL
+            value: SSL
+          - name: KAFKA_UTILS_SSL_TRUSTSTORE_LOCATION
+            value: /etc/kafka/secrets/{{ template "lk-kafka-utils.kafka.ssl.client.truststore" . }}
+          - name: KAFKA_UTILS_SSL_TRUSTSTORE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "lk-kafka-utils.kafka.ssl.secretName" . }}
+                key: client.truststore.password
+          - name: KAFKA_UTILS_SSL_KEYSTORE_LOCATION
+            value: /etc/kafka/secrets/{{ template "lk-kafka-utils.kafka.ssl.client.keystore" . }}
+          - name: KAFKA_UTILS_SSL_KEYSTORE_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "lk-kafka-utils.kafka.ssl.secretName" . }}
+                key: client.keystore.password
+          - name: KAFKA_UTILS_SSL_KEY_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ template "lk-kafka-utils.kafka.ssl.secretName" . }}
+                key: client.key.password
+          {{- end }}
+          # Other configs
+          {{- range $key, $value := .Values.configurationOverrides }}
+          - name: {{ printf "KAFKA_UTILS_%s" $key | replace "." "_" | upper | quote }}
+            value: {{ $value | quote }}
+          {{- end }}
+          {{- range $key, $value := .Values.customEnv }}
+          - name: {{ $key | quote }}
+            value: {{ $value | quote }}
+          {{- end }}
+          {{- if or .Values.ssl.enabled .Values.global.kafka.ssl.enabled }}
+          volumeMounts:
+          - name: ssl
+              mountPath: "/etc/kafka/secrets"
+          {{- end }}
+      - name: ppapi-table-sync-monitor
+        image: "{{ .Values.image }}:{{ .Values.imageTag }}"
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        resources:
+{{ toYaml .Values.resources | indent 12 }}
+        command: ["/usr/bin/ppapi-table-sync-monitor.sh"]
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: PRECISION
+          value: "5"
+        - name: SECOND_INTERVAL_CHECK
+          value: "300"
+        - name: ELASYS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: elasys-db
+              key: db-password
+        - name: ELASYS_USER
+          valueFrom:
+            secretKeyRef:
+              name: elasys-db
+              key: db-user
+        - name: ELASYS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: global-config
+              key: elasys-db-url
+        - name: ELASYS_DB
+          valueFrom:
+            configMapKeyRef:
+              name: global-config
+              key: elasys-db-name
+        {{- if or .Values.ssl.enabled .Values.global.kafka.ssl.enabled }}
+        volumeMounts:
+        - name: ssl
+            mountPath: "/etc/kafka/secrets"
+          {{- end }}
+      {{- if .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.imagePullSecrets | indent 8 }}
+      {{- end }}
+      volumes:
+      {{- if or .Values.ssl.enabled .Values.global.kafka.ssl.enabled }}
+      - name: ssl
+        secret:
+          secretName: {{ template "lk-kafka-utils.kafka.ssl.secretName" . }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

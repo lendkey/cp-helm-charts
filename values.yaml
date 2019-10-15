@@ -268,6 +268,26 @@ cp-control-center:
   #  requests:
   #   cpu: 100m
   #   memory: 128Mi
+## ------------------------------------------------------
+## Control Center
+## ------------------------------------------------------
+lk-kafka-utils:
+  enabled: true
+  image: docker.artifactory.lkeymgmt.com/lk-kafka-utils
+  imageTag: 1.0.0
+  ## Optionally specify an array of imagePullSecrets. Secrets must be manually created in the namespace.
+  ## https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
+  imagePullSecrets:
+  #  - name: "regcred"
+  resources: {}
+  ## If you do want to specify resources, uncomment the following lines, adjust them as necessary,
+  ## and remove the curly braces after 'resources:'
+  #  limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  #  requests:
+  #   cpu: 100m
+  #   memory: 128Mi
 global:
   kafka:
     ssl:

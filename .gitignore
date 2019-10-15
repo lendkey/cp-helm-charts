@@ -5,3 +5,4 @@ charts/*/requirements.lock
 certs/*
 !certs/.gitkeep
 misc
+*.tgz
