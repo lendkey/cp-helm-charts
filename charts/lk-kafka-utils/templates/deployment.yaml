@@ -55,6 +55,8 @@ spec:
           value: ksql-ppapi-stream.tpl.json
         - name: NAME
           value: elasys-source-connector-01
+        - name: SERVER
+          value: k8s
         - name: NAMESPACE
           valueFrom:
             fieldRef:
