@@ -28,6 +28,6 @@ dependencies:
   repository: file://./charts/cp-control-center
   condition: cp-control-center.enabled
 - name: lk-kafka-utils
-  version: 0.1.0
+  version: 0.1.1
   repository: file://./charts/lk-kafka-utils
   condition: lk-kafka-utils.enabled
