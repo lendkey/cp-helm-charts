@@ -6,8 +6,8 @@ replicaCount: 1
 
 ## Image Info
 ## ref: https://hub.docker.com/r/confluentinc/cp-kafka/
-image: confluentinc/cp-enterprise-control-center
-imageTag: 5.2.0
+image: docker.artifactory.lkeymgmt.com/lk-kafka-utils
+imageTag: 1.0.0
 
 ## Specify a imagePullPolicy
 ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
@@ -18,21 +18,13 @@ imagePullPolicy: IfNotPresent
 ## ref: https://kubernetes.io/docs/concepts/containers/images/#specifying-imagepullsecrets-on-a-pod
 imagePullSecrets:
 
-serviceHttpPort: 9021
 
 ## Control Center properties
-## ref: 
+## ref:
 configurationOverrides:
   "replication.factor": "3"
-  # "internal.topics.replication": "1"
-  # "monitoring.interceptor.topic.replication": "1"
-  # "metrics.topic.replication": "1"
-  # "command.topic.replication": "1"
-  # "streams.num.stream.threads": "2"
-  # "streams.consumer.request.timeout.ms": "960032"
-  # "rest.listeners": "http://0.0.0.0:9021"
 
-## Kafka Connect JVM Heap Option
+## Kafka JVM Heap Option
 heapOptions: "-Xms512M -Xmx512M"
 
 ## Additional env variables
@@ -60,27 +52,6 @@ nodeSelector: {}
 ## Taints to tolerate on node assignment:
 ## Ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
 tolerations: {}
-
-## Monitoring
-## Kafka JMX Settings
-## ref: https://docs.confluent.io/current/kafka/monitoring.html
-jmx:
-  port: 5555
-
-## Prometheus Exporter Configuration
-## ref: https://prometheus.io/docs/instrumenting/exporters/
-prometheus:
-  ## JMX Exporter Configuration
-  ## ref: https://github.com/prometheus/jmx_exporter
-  jmx:
-    enabled: true
-    image: solsson/kafka-prometheus-jmx-exporter@sha256
-    imageTag: 6f82e2b0464f50da8104acd7363fb9b995001ddff77d248379f8788e78946143
-    port: 5556
-
-    ## Resources configuration for the JMX exporter container.
-    ## See the `resources` documentation above for details.
-    resources: {}
 
 ## You can list load balanced service endpoint, or list of all brokers (which is hard in K8s).  e.g.:
 ## bootstrapServers: "PLAINTEXT://dozing-prawn-kafka-headless:9092"
